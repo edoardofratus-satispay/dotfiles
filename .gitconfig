@@ -1,0 +1,101 @@
+# This is Git's per-user configuration file.
+[user]
+# Please adapt and uncomment the following lines:
+#	name = edoardo.fratus
+#	email = edoardo.fratus@S-ITA-0611.local
+[color]
+  ui = true
+
+[user]
+	name = edoardo.fratus
+	email = edoardo.fratus@satispay.com
+	signingkey = /Users/edoardo.fratus/.ssh/id_rsa
+[alias]
+  co = checkout
+  br = branch
+  ci = commit
+  st = status
+  ll = log --all --decorate --oneline --graph
+  feature = !bash -c 'source $HOME/.git-flow-functions && feature $0'
+  release = !bash -c 'source $HOME/.git-flow-functions && release $0'  
+  hotfix = !bash -c 'source $HOME/.git-flow-functions && hotfix $0'
+  support = !bash -c 'source $HOME/.git-flow-functions && support $0'
+  close = !bash -c 'source $HOME/.git-flow-functions && close $0'
+  sync = !bash -c 'source $HOME/.git-flow-functions && sync'
+  bump = !bash -c 'source $HOME/.git-flow-functions && bump $0'
+  track = !bash -c 'source $HOME/.git-flow-functions && track'
+  deploy = !bash -c 'source $HOME/.git-flow-functions && deploy $0'
+  prev = checkout @{-1}
+  pushprod = !git push --force origin $(git rev-parse --abbrev-ref HEAD):prod
+  pushtest = !git push --force origin $(git rev-parse --abbrev-ref HEAD):test 
+  pushstaging = !git push --force origin $(git rev-parse --abbrev-ref HEAD):staging
+
+[alias]
+    # Crea un nuovo branch per una feature partendo da master aggiornato
+    start-feature = "!f() { \
+        feature_name=$1; \
+        if [ -z \"$feature_name\" ]; then \
+            echo \"Specificare il nome della feature\"; \
+            return 1; \
+        fi; \
+        git checkout master && \
+        git pull origin master && \
+        git checkout -b feature/$feature_name; \
+    }; f"
+
+    # Aggiorna il branch feature con gli ultimi cambiamenti da master
+    sync-feature = "!f() { \
+        current_branch=$(git symbolic-ref --short HEAD); \
+        if [[ $current_branch != feature/* ]]; then \
+            echo \"Non sei su un branch feature/*\"; \
+            return 1; \
+        fi; \
+        git fetch origin master && \
+        git merge origin/master; \
+    }; f"
+
+    # Merge della feature in master in modo sicuro
+    merge-feature = "!f() { \
+        current_branch=$(git symbolic-ref --short HEAD); \
+        if [[ $current_branch != feature/* ]]; then \
+            echo \"Non sei su un branch feature/*\"; \
+            return 1; \
+        fi; \
+        git checkout master && \
+        git pull origin master && \
+        git merge $current_branch && \
+        echo \"Feature merged successfully. Delete feature branch? (y/n)\" && \
+        read answer && \
+        if [ \"$answer\" = \"y\" ]; then \
+            git branch -d $current_branch && \
+            git push origin --delete $current_branch; \
+        fi; \
+    }; f"
+
+    # Stato del branch feature rispetto a master
+    feature-status = "!f() { \
+        current_branch=$(git symbolic-ref --short HEAD); \
+        if [[ $current_branch != feature/* ]]; then \
+            echo \"Non sei su un branch feature/*\"; \
+            return 1; \
+        fi; \
+        echo \"Commit ahead/behind rispetto a master:\" && \
+        git rev-list --left-right --count master...$current_branch && \
+        echo \"\\nFile modificati:\" && \
+        git diff --name-status master; \
+    }; f"
+
+[core]
+	excludesfile = /Users/edoardo.fratus/.gitignore_global
+	autocrlf = input
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[commit]
+	template = /Users/edoardo.fratus/.stCommitMsg
+	gpgsign = true
+[gpg]
+	format = ssh
